@@ -3,7 +3,7 @@ interface HomeProps{
 }
 
 export default function Home(props: HomeProps) {
-  return <h1>Contagem: {props.count} </h1>;
+  return <h1 className="text-violet-500 font-bold text-xl">Contagem: {props.count} </h1>;
 }
 
 //This code is ran in the WebServer so this isnt affected when a crwaler or Google access the page with "Debuger > Javascript Disable".
