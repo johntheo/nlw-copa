@@ -53,7 +53,7 @@ model Game {
   date                  DateTime
   firstTeamCountryCode  String //countrycode.org
   secondTeamCountryCode String //countrycode.org
-  Guess                 Guess[]
+  guesses               Guess[]
 }
 
 model Guess {
