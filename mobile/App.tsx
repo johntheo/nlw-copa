@@ -5,8 +5,8 @@ import {
   Roboto_500Medium,
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
-import { SignIn } from "./screens/SignIn";
-import { Loading } from "./components/Loading";
+import { SignIn } from "./src/screens/SignIn";
+import { Loading } from "./src/components/Loading";
 import { THEME } from "./src/styles/theme";
 
 export default function App() {
