@@ -5,10 +5,10 @@ import {
   Roboto_500Medium,
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
-import { SignIn } from "./src/screens/SignIn";
 import { Loading } from "./src/components/Loading";
 import { THEME } from "./src/styles/theme";
 import { AuthContextProvider } from "./src/contexts/AuthContext";
+import { Find } from "./src/screens/Find";
 
 export default function App() {
   //Using fontsLoaded to ensure the font is loaded
@@ -27,7 +27,7 @@ export default function App() {
           backgroundColor="transparent"
           translucent
         />
-        {fontsLoaded ? <SignIn /> : <Loading />}
+        {fontsLoaded ? <Find /> : <Loading />}
       </AuthContextProvider>
     </NativeBaseProvider>
   );
