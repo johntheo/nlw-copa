@@ -8,6 +8,7 @@ import {
 import { SignIn } from "./src/screens/SignIn";
 import { Loading } from "./src/components/Loading";
 import { THEME } from "./src/styles/theme";
+import { AuthContextProvider } from "./src/contexts/AuthContext";
 
 export default function App() {
   //Using fontsLoaded to ensure the font is loaded
@@ -20,12 +21,14 @@ export default function App() {
   return (
     //This will enure that all the application will be able to use Native Base components
     <NativeBaseProvider theme={THEME}>
-      <StatusBar 
-      barStyle="light-content"
-      backgroundColor="transparent"
-      translucent
-      />
-      {fontsLoaded ? <SignIn /> : <Loading />}
+      <AuthContextProvider>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
+        {fontsLoaded ? <SignIn /> : <Loading />}
+      </AuthContextProvider>
     </NativeBaseProvider>
   );
 }
