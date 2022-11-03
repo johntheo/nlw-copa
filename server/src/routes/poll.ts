@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import ShortUniqueId from "short-unique-id";
 import { prisma } from "../lib/prisma";
 import { z } from "zod";
+import { authenticate } from "../plugins/authenticate";
 
 export async function poolRoutes(fastify: FastifyInstance) {
   fastify.get("/polls/count", async () => {
@@ -14,36 +15,90 @@ export async function poolRoutes(fastify: FastifyInstance) {
     const createPollBody = z.object({
       title: z.string(), //treating null parameters
     });
-
     const { title } = createPollBody.parse(request.body);
 
     const generate = new ShortUniqueId({ length: 6 });
     const code = String(generate()).toUpperCase();
 
-    try{
-        await request.jwtVerify();
-        await prisma.poll.create({
-            data: {
-              title,
-              code,
-              ownerId: request.user.sub,
-              participants: {
-                create: {
-                    userId: request.user.sub
-                }
-              }
+    try {
+      await request.jwtVerify();
+      await prisma.poll.create({
+        data: {
+          title,
+          code,
+          ownerId: request.user.sub,
+          participants: {
+            create: {
+              userId: request.user.sub,
             },
-          });
-    }catch {
-        await prisma.poll.create({
-            data: {
-              title,
-              code,
-            },
-          });
+          },
+        },
+      });
+    } catch {
+      await prisma.poll.create({
+        data: {
+          title,
+          code,
+        },
+      });
     }
-    
 
     return reply.status(201).send({ code });
   });
+
+  fastify.post(
+    "/polls/:id/join",
+    { onRequest: [authenticate] },
+    async (request, reply) => {
+      const joinPollBody = z.object({
+        code: z.string(), //treating null parameters
+      });
+      const { code } = joinPollBody.parse(request.body);
+
+      const poll = await prisma.poll.findUnique({
+        where:{
+            code,
+        },
+        include:{
+            participants: {
+                where:{
+                    userId: request.user.sub
+                }
+            }
+        }
+      })
+
+      if(!poll){
+        return reply.status(400).send({
+            message: 'Poll not found'
+        })
+      }
+      
+      if(poll.participants.length > 0){
+        return reply.status(400).send({
+            message: 'You already part of this Poll'
+        })
+      }
+
+      if(!poll.ownerId){
+        await prisma.poll.update({
+            where:{
+                id:poll.id
+            },
+            data:{
+                ownerId: request.user.sub
+            }
+        })
+      }
+
+      await prisma.participant.create({
+        data:{
+            pollId: poll.id,
+            userId: request.user.sub
+        }
+      })
+
+      return reply.status(201).send()
+    }
+  );
 }
