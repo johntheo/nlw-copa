@@ -47,7 +47,7 @@ export async function poolRoutes(fastify: FastifyInstance) {
   });
 
   fastify.post(
-    "/polls/:id/join",
+    "/polls/join",
     { onRequest: [authenticate] },
     async (request, reply) => {
       const joinPollBody = z.object({
@@ -56,87 +56,126 @@ export async function poolRoutes(fastify: FastifyInstance) {
       const { code } = joinPollBody.parse(request.body);
 
       const poll = await prisma.poll.findUnique({
-        where:{
-            code,
+        where: {
+          code,
         },
-        include:{
-            participants: {
-                where:{
-                    userId: request.user.sub
-                }
-            }
-        }
-      })
-
-      if(!poll){
-        return reply.status(400).send({
-            message: 'Poll not found'
-        })
-      }
-      
-      if(poll.participants.length > 0){
-        return reply.status(400).send({
-            message: 'You already part of this Poll'
-        })
-      }
-
-      if(!poll.ownerId){
-        await prisma.poll.update({
-            where:{
-                id:poll.id
+        include: {
+          participants: {
+            where: {
+              userId: request.user.sub,
             },
-            data:{
-                ownerId: request.user.sub
-            }
-        })
+          },
+        },
+      });
+
+      if (!poll) {
+        return reply.status(400).send({
+          message: "Poll not found",
+        });
+      }
+
+      if (poll.participants.length > 0) {
+        return reply.status(400).send({
+          message: "You already part of this Poll",
+        });
+      }
+
+      if (!poll.ownerId) {
+        await prisma.poll.update({
+          where: {
+            id: poll.id,
+          },
+          data: {
+            ownerId: request.user.sub,
+          },
+        });
       }
 
       await prisma.participant.create({
-        data:{
-            pollId: poll.id,
-            userId: request.user.sub
-        }
-      })
+        data: {
+          pollId: poll.id,
+          userId: request.user.sub,
+        },
+      });
 
-      return reply.status(201).send()
+      return reply.status(201).send();
     }
   );
 
-  fastify.get('/polls',{onRequest: [authenticate]},async (request) =>{
+  fastify.get("/polls", { onRequest: [authenticate] }, async (request) => {
     const polls = await prisma.poll.findMany({
-        where:{
-            participants:{
-                some: {
-                    userId: request.user.sub
-                }
-            }
+      where: {
+        participants: {
+          some: {
+            userId: request.user.sub,
+          },
         },
-        include:{
-            _count: {
-                select:{
-                    participants: true
-                }
+      },
+      include: {
+        _count: {
+          select: {
+            participants: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+            User: {
+              select: {
+                avatarUrl: true,
+              },
             },
-            participants: {
-                select:{
-                    id:true,
-                    User: {
-                        select: {
-                            avatarUrl: true
-                        }
-                    }
-                },
-                take: 4
-            },
-            owner: {
-                select:{
-                    id: true,
-                    name: true
-                }
-            }
-        }
-    })
+          },
+          take: 4,
+        },
+        owner: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
 
-    return {polls}
-  })
+    return { polls };
+  });
+
+  fastify.get("/polls/:id", { onRequest: [authenticate] }, async (request) => {
+    const getPollParams = z.object({
+      id: z.string(),
+    });
+    const { id } = getPollParams.parse(request.params);
+
+    const poll = await prisma.poll.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        _count: {
+          select: {
+            participants: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+            User: {
+              select: {
+                avatarUrl: true,
+              },
+            },
+          },
+          take: 4,
+        },
+        owner: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return { poll };
+  });
 }
