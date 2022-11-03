@@ -1,4 +1,9 @@
-import { createContext, ReactNode } from "react";
+import { createContext, ReactNode, useState, useEffect } from "react";
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser'
+import * as Google from 'expo-auth-session/providers/google'
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface UserProps {
     name: string;
@@ -6,6 +11,7 @@ interface UserProps {
 }
 export interface AuthContextDataProps{
     user:UserProps;
+    isUserLoading: boolean;
     signIn: () => Promise<void>;
 }
 
@@ -15,18 +21,43 @@ export interface AuthProviderProps {
 export const AuthContext = createContext({} as AuthContextDataProps);
 
 export function AuthContextProvider({children}:AuthProviderProps) {
+    const [isUserLoading, setIsUserLoading] = useState(false);
+    const [user, setUser] = useState<UserProps>({} as UserProps);
+
+    const [ request, response, promptAsync] =  Google.useAuthRequest({
+        clientId: '585843545249-5jk30lmtgejnuqtojmfbe54badts4d8r.apps.googleusercontent.com',
+        redirectUri: AuthSession.makeRedirectUri({useProxy: true}),
+        scopes: ['profile', 'email']
+    })
 
     async function signIn() {
-        console.log("Let's Log");
+        try {
+            setIsUserLoading(true);
+            await promptAsync();
+
+        }catch(err){
+            console.log(err);
+        }finally {
+            setIsUserLoading(false);
+        }
     }
 
+    //With the token we can get the user information
+    async function signInWithGoogle(access_token: string){
+        console.log("TOKEN DE AUTENTICAÇÃO ==> ", access_token);
+    }
+
+    //Monitor any change on reponse and execute the code inside the scope
+    useEffect(() => {
+        if(response?.type === 'success' && response.authentication?.accessToken ){
+            signInWithGoogle(response.authentication.accessToken);
+        }
+    },[response])
     return (
         <AuthContext.Provider value={{
             signIn,
-            user: {
-                name: 'John Theo',
-                avatarUrl: 'https://github.com/johntheo.png'
-            }
+            isUserLoading,
+            user
         }}>
             {children}
         </AuthContext.Provider>
