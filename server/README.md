@@ -13,3 +13,5 @@
   },
 ```
 and after in the CLI: `npx prisma db seed`
+- You can run `npx prisma studio` to check and alter the data in db
+- Zod is a good library for schema validation `npm i zod`
