@@ -9,6 +9,8 @@ import { Loading } from "./src/components/Loading";
 import { THEME } from "./src/styles/theme";
 import { AuthContextProvider } from "./src/contexts/AuthContext";
 import { Routes } from "./src/routes";
+import { Keyboard, TouchableWithoutFeedback } from "react-native";
+import { DismissKeyboard } from "./src/components/DismissKeyboard";
 
 export default function App() {
   //Using fontsLoaded to ensure the font is loaded
@@ -20,15 +22,17 @@ export default function App() {
 
   return (
     //This will enure that all the application will be able to use Native Base components
-    <NativeBaseProvider theme={THEME}>
-      <AuthContextProvider>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        />
-        {fontsLoaded ? <Routes /> : <Loading />}
-      </AuthContextProvider>
-    </NativeBaseProvider>
+    <DismissKeyboard>
+      <NativeBaseProvider theme={THEME}>
+        <AuthContextProvider>
+          <StatusBar
+            barStyle="light-content"
+            backgroundColor="transparent"
+            translucent
+          />
+          {fontsLoaded ? <Routes /> : <Loading />}
+        </AuthContextProvider>
+      </NativeBaseProvider>
+    </DismissKeyboard>
   );
 }
