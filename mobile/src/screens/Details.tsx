@@ -1,9 +1,10 @@
 import { useRoute } from "@react-navigation/native";
 import { isLoading } from "expo-font";
-import { HStack, Toast, VStack } from "native-base";
+import { HStack, Toast, useToast, VStack } from "native-base";
 import { useEffect, useState } from "react";
 import { Share } from "react-native";
 import { EmptyMyPollList } from "../components/EmptyMyPollList";
+import { Guesses } from "../components/Guesses";
 import { Header } from "../components/Header";
 import { Loading } from "../components/Loading";
 import { Option } from "../components/Option";
@@ -19,6 +20,7 @@ export function Details() {
 
   const { id } = route.params as RouteParams;
   const [isLoading, setIsLoading] = useState(true);
+  const toast = useToast();
   const [isOptionSelected, setIsOptionSelected] = useState<
     "guesses" | "ranking"
   >("guesses");
@@ -36,7 +38,7 @@ export function Details() {
 
       setPoolDetails(response.data.poll);
     } catch (error) {
-      return Toast.show({
+      return toast.show({
         title: "Não foi os detalhes do bolão",
         placement: "top",
         bgColor: "red.500",
@@ -84,6 +86,8 @@ export function Details() {
               onPress={() => setIsOptionSelected("ranking")}
             />
           </HStack>
+
+          <Guesses pollId="{pollDetails.id} " />
         </VStack>
       ) : (
         <EmptyMyPollList code={pollDetails.code} />
