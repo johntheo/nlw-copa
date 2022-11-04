@@ -2,6 +2,7 @@ import { useRoute } from "@react-navigation/native";
 import { isLoading } from "expo-font";
 import { HStack, Toast, VStack } from "native-base";
 import { useEffect, useState } from "react";
+import { Share } from "react-native";
 import { EmptyMyPollList } from "../components/EmptyMyPollList";
 import { Header } from "../components/Header";
 import { Loading } from "../components/Loading";
@@ -45,6 +46,11 @@ export function Details() {
     }
   }
 
+  async function handleCodeShare() {
+    await Share.share({
+      message: pollDetails.code,
+    });
+  }
   useEffect(() => {
     fetchPoolDetails();
   }, [id]); //id as a dependency for useEffect. So every time id changes, useEffect is called.
@@ -55,7 +61,12 @@ export function Details() {
 
   return (
     <VStack flex={1} bgColor="gray.900">
-      <Header title={pollDetails.title} showBackButton showShareButton />
+      <Header
+        title={pollDetails.title}
+        showBackButton
+        showShareButton
+        onShare={handleCodeShare}
+      />
 
       {pollDetails._count?.participants > 0 ? (
         <VStack px={5} flex={1}>
