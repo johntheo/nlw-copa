@@ -28,54 +28,60 @@ export async function guessRoutes(fastify: FastifyInstance) {
         request.body
       );
 
-
-      const participant = await prisma.participant.findUnique({
-        where:{
-            userId_pollId:{
-                pollId,
-                userId: request.user.sub
-            }
-        }
-      })
-      
-      if(!participant){
-        return reply.status(400).send({
-            message: "You're not allowed to create a guess inside this poll, because you're not a Participant"
-        })
-      }
-
-      const guess = await prisma.guess.findUnique({
-        where:{
-            participantId_gameId:{
-                participantId: participant.id,
-                gameId
-            }
-        }
-      })
-
-      if(guess){
-        return reply.status(400).send({
-            message: "You already sent a guess to this game on this poll"
+        const participant = await prisma.participant.findUnique({
+          where: {
+            userId_pollId: {
+              pollId,
+              userId: request.user.sub,
+            },
+          },
         });
-      }
 
-      const game = await prisma.game.findUnique({
-        where:{
-            id: gameId
+        if (!participant) {
+          console.log(
+            "You're not allowed to create a guess inside this poll, because you're not a Participant"
+          );
+          return reply.status(400).send({
+            message:
+              "You're not allowed to create a guess inside this poll, because you're not a Participant",
+          });
         }
-      })
 
-      if(!game){
-        return reply.status(400).send({
-            message: "Game not found."
-        })
-      }
+        const guess = await prisma.guess.findUnique({
+          where: {
+            participantId_gameId: {
+              participantId: participant.id,
+              gameId,
+            },
+          },
+        });
 
-      if (game.date < new Date()){
-        return reply.status(400).send({
-            message: "You cannot send guesses after game starts"
-        })
-      }
+        if (guess) {
+          console.log("You already sent a guess to this game on this poll");
+          return reply.status(400).send({
+            message: "You already sent a guess to this game on this poll",
+          });
+        }
+
+        const game = await prisma.game.findUnique({
+          where: {
+            id: gameId,
+          },
+        });
+
+        if (!game) {
+          console.log("Game not found.");
+          return reply.status(400).send({
+            message: "Game not found.",
+          });
+        }
+
+        if (game.date < new Date()) {
+          console.log("You cannot send guesses after game starts");
+          return reply.status(400).send({
+            message: "You cannot send guesses after game starts",
+          });
+        }
 
       await prisma.guess.create({
         data:{
