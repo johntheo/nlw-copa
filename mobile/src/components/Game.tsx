@@ -42,14 +42,20 @@ export function Game({ data, setFirstTeamPoints, setSecondTeamPoints, onGuessCon
       p={4}
     >
       <Text color="gray.100" fontFamily="heading" fontSize="sm">
-        {getName(data.firstTeamCountryCode)} vs. {getName(data.secondTeamCountryCode)}
+        {getName(data.firstTeamCountryCode)} vs.{" "}
+        {getName(data.secondTeamCountryCode)}
       </Text>
 
       <Text color="gray.200" fontSize="xs">
         22 de Novembro de 2022 às 16:00h
       </Text>
 
-      <HStack mt={4} w="full" justifyContent="space-between" alignItems="center">
+      <HStack
+        mt={4}
+        w="full"
+        justifyContent="space-between"
+        alignItems="center"
+      >
         <Team
           code={data.firstTeamCountryCode}
           position="right"
@@ -65,9 +71,14 @@ export function Game({ data, setFirstTeamPoints, setSecondTeamPoints, onGuessCon
         />
       </HStack>
 
-      {
-        !data.guess &&
-        <Button size="xs" w="full" bgColor="green.500" mt={4} onPress={onGuessConfirm}>
+      {!data.guess && (
+        <Button
+          size="xs"
+          w="full"
+          bgColor="green.500"
+          mt={4}
+          onPress={onGuessConfirm}
+        >
           <HStack alignItems="center">
             <Text color="white" fontSize="xs" fontFamily="heading" mr={3}>
               CONFIRMAR PALPITE
@@ -76,7 +87,7 @@ export function Game({ data, setFirstTeamPoints, setSecondTeamPoints, onGuessCon
             <Check color={colors.white} size={sizes[4]} />
           </HStack>
         </Button>
-      }
+      )}
     </VStack>
   );
 }

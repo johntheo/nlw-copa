@@ -1,7 +1,8 @@
-import { Box, FlatList, useToast } from "native-base";
+import { FlatList, useToast } from "native-base";
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Game, GameProps } from "./Game";
+import { Loading } from "./Loading";
 
 interface Props {
   pollId: string;
@@ -10,8 +11,8 @@ interface Props {
 export function Guesses({ pollId }: Props) {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [firstTeamPoints, setFirstTeamPoints] = useState();
-  const [secondTeamPoints, setSecondTeamPoints] = useState();
+  const [firstTeamPoints, setFirstTeamPoints] = useState("");
+  const [secondTeamPoints, setSecondTeamPoints] = useState("");
   const [games, setGames] = useState<GameProps[]>([] as GameProps[]);
 
   async function fetchGames() {
@@ -31,9 +32,46 @@ export function Guesses({ pollId }: Props) {
     }
   }
 
+  async function handleGuessConfirm(gameId: string) {
+    try {
+      if (!firstTeamPoints.trim() || !secondTeamPoints.trim()) {
+        return toast.show({
+          title: "Informe o placar do palpite",
+          placement: "top",
+          bgColor: "red.500",
+        });
+      }
+
+      console.log(`POLLID ${pollId}`);
+      await api.post(`/polls/${pollId}/games/${gameId}/guesses`, {
+        firstTeamPoints: Number(firstTeamPoints),
+        secondTeamPoints: Number(secondTeamPoints),
+      });
+
+      return toast.show({
+        title: `Palpite realizado com sucesso: ${firstTeamPoints} - ${secondTeamPoints}`,
+        placement: "top",
+        bgColor: "green.500",
+      });
+    } catch (error) {
+      console.log(error.message);
+      return toast.show({
+        title: "Não foi possível enviar o palpite",
+        placement: "top",
+        bgColor: "red.500",
+      });
+    } finally {
+      fetchGames();
+    }
+  }
+
   useEffect(() => {
     fetchGames();
   }, [pollId]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
   return (
     <FlatList
       data={games}
@@ -41,11 +79,12 @@ export function Guesses({ pollId }: Props) {
       renderItem={({ item }) => (
         <Game
           data={item}
-          setFirstTeamPoints={firstTeamPoints}
-          setSecondTeamPoints={secondTeamPoints}
-          onGuessConfirm={() => {}}
+          setFirstTeamPoints={setFirstTeamPoints}
+          setSecondTeamPoints={setSecondTeamPoints}
+          onGuessConfirm={() => handleGuessConfirm(item.id)}
         />
       )}
+      _contentContainerStyle={{ pb: 10 }}
     />
   );
 }
